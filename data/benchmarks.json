@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "generated_at": "2025-01-01T00:00:00+00:00",
+    "top_n": 100,
+    "since_days": 30,
+    "note": "Seed data – will be replaced on first GitHub Actions run"
+  },
+  "benchmarks": {
+    "stars": 75000,
+    "commits_30d": 120,
+    "contributors": 850,
+    "open_issues": 420
+  },
+  "repos": []
+}
