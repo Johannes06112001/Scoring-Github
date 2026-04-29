@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top 100 Benchmark Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;700;800&display=swap">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --border: #1e1e2e;
+    --accent: #e8ff47;
+    --accent2: #4fffb0;
+    --muted: #555570;
+    --text: #d8d8f0;
+    --text-dim: #7070a0;
+    --red: #ff4f6e;
+    --orange: #ff9f47;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 48px 0 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(232,255,71,.08);
+    border: 1px solid rgba(232,255,71,.2);
+    padding: 4px 10px;
+    display: inline-block;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    color: #fff;
+  }
+  h1 span { color: var(--accent); }
+  .meta-line {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+  .meta-line strong { color: var(--accent2); }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: background .2s;
+  }
+  .kpi-card:hover { background: #181825; }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .3s ease;
+  }
+  .kpi-card:hover::after { transform: scaleX(1); }
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .kpi-value {
+    font-family: var(--sans);
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .kpi-sub {
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .kpi-card.green .kpi-value { color: var(--accent2); }
+
+  /* ── SECTION HEADING ── */
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .section-head h2 {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -.01em;
+  }
+  .line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ── SCORE INPUT PANEL ── */
+  .score-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 48px;
+  }
+  .score-panel p {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+  .input-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .input-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
+  .input-group label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); }
+  .input-group input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color .2s;
+    width: 100%;
+  }
+  .input-group input:focus { border-color: var(--accent); }
+  .input-group input::placeholder { color: var(--muted); }
+  .btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .05em;
+    padding: 11px 28px;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    white-space: nowrap;
+    align-self: flex-end;
+  }
+  .btn:hover { opacity: .85; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  /* ── SCORE RESULT BARS ── */
+  #score-result { margin-top: 28px; display: none; }
+  .score-title {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    letter-spacing: .06em;
+  }
+  .score-title strong { color: var(--accent2); }
+  .bar-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .bar-label { width: 120px; font-size: 11px; color: var(--text-dim); text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 20px; background: var(--border); position: relative; overflow: hidden; }
+  .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width .8s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .bar-fill.low { background: var(--red); }
+  .bar-fill.mid { background: var(--orange); }
+  .bar-fill.high { background: var(--accent2); }
+  .bar-pct { width: 64px; font-size: 12px; color: var(--text); text-align: right; flex-shrink: 0; }
+
+  /* ── REPO TABLE ── */
+  .table-wrap { overflow-x: auto; margin-bottom: 64px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { position: sticky; top: 0; z-index: 2; }
+  th {
+    background: var(--bg);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: 10px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover { color: var(--accent); }
+  th.sorted { color: var(--accent); }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .rank-badge {
+    display: inline-block;
+    width: 28px; height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .repo-link { color: var(--text); text-decoration: none; }
+  .repo-link:hover { color: var(--accent); }
+  .lang-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .num { font-variant-numeric: tabular-nums; color: var(--text-dim); }
+  .num-accent { color: var(--accent); font-weight: 600; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ── LOADING / ERROR states ── */
+  .state-msg {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  .state-msg .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="header-top">
+      <div>
+        <div class="badge">Open Source Intelligence</div>
+        <h1>Top <span>100</span> Benchmark<br>Dashboard</h1>
+        <p class="meta-line">
+          Reference values computed as arithmetic mean of the 100 most-starred repos.
+          Mean = <strong>100 %</strong> reference. Updated
+          <strong id="updated-at">—</strong>.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── KPI BENCHMARK CARDS ── -->
+  <div class="section-head">
+    <h2>Benchmark Averages (= 100 % Reference)</h2>
+    <div class="line"></div>
+  </div>
+  <div id="kpi-grid" class="kpi-grid">
+    <div class="state-msg"><div class="spinner"></div>Loading…</div>
+  </div>
+
+  <!-- ── SCORE A REPO ── -->
+  <div class="section-head">
+    <h2>Score Your Repository</h2>
+    <div class="line"></div>
+  </div>
+  <div class="score-panel">
+    <p>Enter raw KPI values for any repository to see how it compares against the Top-100 benchmark mean (100 %).<br>
+    <em>Static checks (README / License) are yes / no – no mean needed.</em></p>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Stars</label>
+        <input id="in-stars" type="number" min="0" placeholder="e.g. 3200">
+      </div>
+      <div class="input-group">
+        <label>Commits (30 d)</label>
+        <input id="in-commits" type="number" min="0" placeholder="e.g. 45">
+      </div>
+      <div class="input-group">
+        <label>Contributors</label>
+        <input id="in-contributors" type="number" min="0" placeholder="e.g. 120">
+      </div>
+      <div class="input-group">
+        <label>Open Issues</label>
+        <input id="in-issues" type="number" min="0" placeholder="e.g. 80">
+      </div>
+      <div class="input-group" style="min-width:80px;max-width:100px;">
+        <label>README</label>
+        <select id="in-readme" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 10px;outline:none;">
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+      <div class="input-group" style="min-width:80px;max-width:100px;">
+        <label>License</label>
+        <select id="in-license" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 10px;outline:none;">
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+      <button class="btn" onclick="scoreRepo()">Calculate Score →</button>
+    </div>
+    <div id="score-result"></div>
+  </div>
+
+  <!-- ── REPO TABLE ── -->
+  <div class="section-head">
+    <h2>Top 100 Repositories</h2>
+    <div class="line"></div>
+  </div>
+  <div class="table-wrap">
+    <table id="repo-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th data-col="full_name">Repository</th>
+          <th data-col="stars" class="sorted">Stars ▾</th>
+          <th data-col="commits_30d">Commits 30d</th>
+          <th data-col="contributors">Contributors</th>
+          <th data-col="open_issues">Open Issues</th>
+          <th>Language</th>
+          <th>README</th>
+          <th>License</th>
+        </tr>
+      </thead>
+      <tbody id="repo-tbody">
+        <tr><td colspan="9"><div class="state-msg"><div class="spinner"></div>Loading repositories…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>Top-100 Benchmark Dashboard · Data from GitHub API</span>
+    <span id="footer-ts">—</span>
+  </footer>
+
+</div>
+
+<script>
+/* ── DATA ── */
+let benchmarks = {};
+let repos = [];
+let sortCol = 'stars';
+let sortAsc = false;
+
+async function loadData() {
+  try {
+    const r = await fetch('data/benchmarks.json?_=' + Date.now());
+    const d = await r.json();
+    benchmarks = d.benchmarks || {};
+    repos = d.repos || [];
+
+    const ts = d.meta?.generated_at
+      ? new Date(d.meta.generated_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
+      : '—';
+    document.getElementById('updated-at').textContent = ts;
+    document.getElementById('footer-ts').textContent = 'Last updated: ' + ts;
+
+    renderKPIs();
+    renderTable();
+  } catch (e) {
+    document.getElementById('kpi-grid').innerHTML = `<div class="state-msg" style="color:var(--red)">Failed to load benchmarks.json.<br>${e.message}</div>`;
+  }
+}
+
+/* ── KPI CARDS ── */
+function renderKPIs() {
+  const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'k' : n;
+  const cards = [
+    { key: 'stars',       label: 'Avg. Stars',           sub: '= 100 % reference',      green: false },
+    { key: 'commits_30d', label: 'Avg. Commits (30 d)',  sub: 'per repo, last 30 days',  green: false },
+    { key: 'contributors',label: 'Avg. Contributors',    sub: 'unique contributors',     green: true  },
+    { key: 'open_issues', label: 'Avg. Open Issues',     sub: 'issues & pull requests',  green: false },
+  ];
+  document.getElementById('kpi-grid').innerHTML = cards.map(c => `
+    <div class="kpi-card ${c.green ? 'green' : ''}">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${fmt(benchmarks[c.key] ?? '—')}</div>
+      <div class="kpi-sub">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+/* ── SCORE CALCULATOR ── */
+function scoreRepo() {
+  const vals = {
+    stars:        parseFloat(document.getElementById('in-stars').value)       || 0,
+    commits_30d:  parseFloat(document.getElementById('in-commits').value)     || 0,
+    contributors: parseFloat(document.getElementById('in-contributors').value)|| 0,
+    open_issues:  parseFloat(document.getElementById('in-issues').value)      || 0,
+  };
+  const readme  = document.getElementById('in-readme').value  === '1';
+  const license = document.getElementById('in-license').value === '1';
+
+  const kpiLabels = { stars: 'Stars', commits_30d: 'Commits 30d', contributors: 'Contributors', open_issues: 'Open Issues' };
+  const rows = Object.entries(vals).map(([k, v]) => {
+    const ref = benchmarks[k] || 1;
+    const pct = Math.min((v / ref) * 100, 300);
+    const cls = pct >= 80 ? 'high' : pct >= 30 ? 'mid' : 'low';
+    const displayPct = ((v / ref) * 100).toFixed(1);
+    return `
+      <div class="bar-row">
+        <div class="bar-label">${kpiLabels[k]}</div>
+        <div class="bar-track"><div class="bar-fill ${cls}" style="width:0%" data-target="${Math.min(pct,100)}"></div></div>
+        <div class="bar-pct">${displayPct} %</div>
+      </div>`;
+  }).join('');
+
+  const checks = `
+    <div class="bar-row">
+      <div class="bar-label">README</div>
+      <div class="bar-track"><div class="bar-fill ${readme?'high':'low'}" style="width:${readme?100:0}%"></div></div>
+      <div class="bar-pct">${readme ? '✓ Yes' : '✗ No'}</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">License</div>
+      <div class="bar-track"><div class="bar-fill ${license?'high':'low'}" style="width:${license?100:0}%"></div></div>
+      <div class="bar-pct">${license ? '✓ Yes' : '✗ No'}</div>
+    </div>`;
+
+  const el = document.getElementById('score-result');
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="score-title">Score relative to Top-100 mean (<strong>100 % = benchmark average</strong>). Above 100 % = above average.</div>
+    ${rows}${checks}`;
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    el.querySelectorAll('.bar-fill[data-target]').forEach(bar => {
+      bar.style.width = bar.dataset.target + '%';
+    });
+  });
+}
+
+/* ── REPO TABLE ── */
+function renderTable() {
+  const sorted = [...repos].sort((a, b) => {
+    let av = a[sortCol] ?? '', bv = b[sortCol] ?? '';
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    return sortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+
+  if (!sorted.length) {
+    document.getElementById('repo-tbody').innerHTML =
+      '<tr><td colspan="9"><div class="state-msg">No repository data yet – trigger the GitHub Actions workflow.</div></td></tr>';
+    return;
+  }
+
+  const fmt = n => n == null ? '—' : n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'k' : n;
+  const bool = v => v ? '<span style="color:var(--accent2)">✓</span>' : '<span style="color:var(--red)">✗</span>';
+
+  document.getElementById('repo-tbody').innerHTML = sorted.map((r, i) => `
+    <tr>
+      <td><span class="rank-badge">${i + 1}</span></td>
+      <td><a class="repo-link" href="${r.url}" target="_blank" rel="noopener">${r.full_name}</a></td>
+      <td class="num-accent">${fmt(r.stars)}</td>
+      <td class="num">${fmt(r.commits_30d)}</td>
+      <td class="num">${fmt(r.contributors)}</td>
+      <td class="num">${fmt(r.open_issues)}</td>
+      <td>${r.language ? `<span class="lang-pill">${r.language}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${bool(r.has_readme)}</td>
+      <td>${bool(r.has_license)}</td>
+    </tr>
+  `).join('');
+}
+
+/* ── SORT ── */
+document.querySelectorAll('th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = false; }
+    document.querySelectorAll('th').forEach(t => t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    th.textContent = th.textContent.replace(/ [▾▴]$/, '') + (sortAsc ? ' ▴' : ' ▾');
+    renderTable();
+  });
+});
+
+loadData();
+</script>
+</body>
+</html>
