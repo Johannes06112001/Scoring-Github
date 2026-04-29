@@ -2,29 +2,26 @@ name: Update Top-100 Benchmarks
 
 on:
   schedule:
-    # Every Monday at 04:00 UTC  →  adjust cron to run 2–3× per week if desired
-    - cron: "0 4 * * 1"       # Monday
-    - cron: "0 4 * * 4"       # Thursday
+    - cron: "0 4 * * 1"       # Monday 04:00 UTC
+    - cron: "0 4 * * 4"       # Thursday 04:00 UTC
   push:
     branches: [main]
     paths:
       - "scripts/fetch_top100.py"
       - ".github/workflows/update_benchmarks.yml"
-  workflow_dispatch:           # allow manual trigger from GitHub UI
+  workflow_dispatch:
 
 permissions:
-  contents: write              # needed to commit data/benchmarks.json back
+  contents: write
 
 jobs:
   fetch-and-publish:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Python setup ──────────────────────────────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -33,26 +30,22 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      # ── 3. Fetch & calculate benchmarks ──────────────────────────────────────
       - name: Run fetch_top100.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/fetch_top100.py
 
-      # ── 4. Commit updated data back to repo ──────────────────────────────────
       - name: Commit benchmarks.json
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/benchmarks.json
-          # Only commit if something actually changed
           git diff --cached --quiet || git commit -m "chore: update Top-100 benchmarks [skip ci]"
           git push
 
-      # ── 5. Deploy static dashboard to GitHub Pages ───────────────────────────
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .          # index.html + data/ live at repo root
+          publish_dir: .
           exclude_assets: ".github,scripts,README.md"
